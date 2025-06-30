@@ -120,6 +120,9 @@ func Walk(v Visitor, node Node) {
 		Walk(v, n.Fun)
 		walkList(v, n.Args)
 
+	case *TryExpr:
+		Walk(v, n.X)
+
 	case *StarExpr:
 		Walk(v, n.X)
 

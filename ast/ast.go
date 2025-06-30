@@ -396,6 +396,12 @@ type (
 		Rparen   token.Pos // position of ")"
 	}
 
+	// A TryExpr node represents an expression followed by the `?` operator.
+	TryExpr struct {
+		X        Expr      // expression
+		Question token.Pos // position of "?"
+	}
+
 	// A StarExpr node represents an expression of the form "*" Expression.
 	// Semantically it could be a unary "*" expression, or a pointer type.
 	//
@@ -511,6 +517,7 @@ func (x *IndexListExpr) Pos() token.Pos  { return x.X.Pos() }
 func (x *SliceExpr) Pos() token.Pos      { return x.X.Pos() }
 func (x *TypeAssertExpr) Pos() token.Pos { return x.X.Pos() }
 func (x *CallExpr) Pos() token.Pos       { return x.Fun.Pos() }
+func (x *TryExpr) Pos() token.Pos        { return x.X.Pos() }
 func (x *StarExpr) Pos() token.Pos       { return x.Star }
 func (x *UnaryExpr) Pos() token.Pos      { return x.OpPos }
 func (x *BinaryExpr) Pos() token.Pos     { return x.X.Pos() }
@@ -545,6 +552,7 @@ func (x *IndexListExpr) End() token.Pos  { return x.Rbrack + 1 }
 func (x *SliceExpr) End() token.Pos      { return x.Rbrack + 1 }
 func (x *TypeAssertExpr) End() token.Pos { return x.Rparen + 1 }
 func (x *CallExpr) End() token.Pos       { return x.Rparen + 1 }
+func (x *TryExpr) End() token.Pos        { return x.Question + 1 }
 func (x *StarExpr) End() token.Pos       { return x.X.End() }
 func (x *UnaryExpr) End() token.Pos      { return x.X.End() }
 func (x *BinaryExpr) End() token.Pos     { return x.Y.End() }
@@ -576,6 +584,7 @@ func (*IndexListExpr) exprNode()  {}
 func (*SliceExpr) exprNode()      {}
 func (*TypeAssertExpr) exprNode() {}
 func (*CallExpr) exprNode()       {}
+func (*TryExpr) exprNode()        {}
 func (*StarExpr) exprNode()       {}
 func (*UnaryExpr) exprNode()      {}
 func (*BinaryExpr) exprNode()     {}

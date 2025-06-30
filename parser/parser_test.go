@@ -814,7 +814,7 @@ func TestIssue57490(t *testing.T) {
 
 	// Because of the syntax error, the end position of the function declaration
 	// is past the end of the file's position range.
-	funcEnd := file.Decls[0].End()
+	funcEnd := file.Decls[0].(*ast.FuncDecl).End()
 
 	// Offset(funcEnd) must not panic (to test panic, set debug=true in token package)
 	// (panic: offset 35 out of bounds [0, 34] (position 36 out of bounds [1, 35]))
@@ -894,5 +894,29 @@ func test() {
 		ast.Fprint(&got, fset, f.Comments, nil)
 		ast.Fprint(&want, fset, wantCommentGroups, nil)
 		t.Fatalf("unexpected f.Comments got:\n%v\nwant:\n%v", got.String(), want.String())
+	}
+}
+
+func TestTryExpr(t *testing.T) {
+	src := `package p; func f() { myFunc()? }`
+	fset := token.NewFileSet()
+	f, err := ParseFile(fset, "", src, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Expect a FuncDecl -> BlockStmt -> ExprStmt -> TryExpr -> CallExpr -> Ident
+	funcDecl := f.Decls[0].(*ast.FuncDecl)
+	blockStmt := funcDecl.Body
+	exprStmt := blockStmt.List[0].(*ast.ExprStmt)
+	tryExpr := exprStmt.X.(*ast.TryExpr)
+	callExpr := tryExpr.X.(*ast.CallExpr)
+	ident := callExpr.Fun.(*ast.Ident)
+
+	if ident.Name != "myFunc" {
+		t.Errorf("expected function name myFunc, got %s", ident.Name)
+	}
+	if fset.Position(tryExpr.Question).Offset != 30 {
+		t.Errorf("expected '?' at offset %d, got %d", 30, fset.Position(tryExpr.Question).Offset)
 	}
 }

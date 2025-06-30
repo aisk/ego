@@ -860,6 +860,8 @@ scanAgain:
 			lit = s.scanRawString()
 		case ':':
 			tok = s.switch2(token.COLON, token.DEFINE)
+		case '?':
+			tok = token.QUESTION
 		case '.':
 			// fractions starting with a '.' are handled by outer switch
 			tok = token.PERIOD
