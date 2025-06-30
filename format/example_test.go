@@ -7,9 +7,9 @@ package format_test
 import (
 	"bytes"
 	"fmt"
-	"go/format"
-	"go/parser"
-	"go/token"
+	"github.com/aisk/ego/format"
+	"github.com/aisk/ego/parser"
+	"github.com/aisk/ego/token"
 	"log"
 )
 

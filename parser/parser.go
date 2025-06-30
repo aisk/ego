@@ -26,10 +26,10 @@ package parser
 
 import (
 	"fmt"
-	"go/ast"
+	"github.com/aisk/ego/ast"
 	"go/build/constraint"
-	"go/scanner"
-	"go/token"
+	"github.com/aisk/ego/scanner"
+	"github.com/aisk/ego/token"
 	"strings"
 )
 

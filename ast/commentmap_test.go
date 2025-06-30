@@ -8,9 +8,9 @@ package ast_test
 
 import (
 	"fmt"
-	. "go/ast"
-	"go/parser"
-	"go/token"
+	. "github.com/aisk/ego/ast"
+	"github.com/aisk/ego/parser"
+	"github.com/aisk/ego/token"
 	"sort"
 	"strings"
 	"testing"
@@ -26,8 +26,8 @@ package p /* the name is p */
 import (
 	"bytes"     // bytes
 	"fmt"       // fmt
-	"go/ast"
-	"go/parser"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/parser"
 )
 
 // T

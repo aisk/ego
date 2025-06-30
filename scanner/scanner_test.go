@@ -6,7 +6,7 @@ package scanner
 
 import (
 	"fmt"
-	"go/token"
+	"github.com/aisk/ego/token"
 	"os"
 	"path/filepath"
 	"runtime"

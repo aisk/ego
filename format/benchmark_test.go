@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"go/format"
+	"github.com/aisk/ego/format"
 	"os"
 	"testing"
 )

@@ -6,9 +6,9 @@ package parser
 
 import (
 	"fmt"
-	"go/ast"
-	"go/scanner"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/scanner"
+	"github.com/aisk/ego/token"
 	"os"
 	"path/filepath"
 	"strings"

@@ -5,9 +5,9 @@
 package ast_test
 
 import (
-	"go/ast"
-	"go/parser"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/parser"
+	"github.com/aisk/ego/token"
 	"testing"
 )
 

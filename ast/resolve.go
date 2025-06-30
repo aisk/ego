@@ -8,8 +8,8 @@ package ast
 
 import (
 	"fmt"
-	"go/scanner"
-	"go/token"
+	"github.com/aisk/ego/scanner"
+	"github.com/aisk/ego/token"
 	"strconv"
 )
 

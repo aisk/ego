@@ -6,8 +6,8 @@ package parser
 
 import (
 	"fmt"
-	"go/ast"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/token"
 	"io/fs"
 	"reflect"
 	"strings"

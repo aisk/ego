@@ -6,8 +6,8 @@ package scanner_test
 
 import (
 	"fmt"
-	"go/scanner"
-	"go/token"
+	"github.com/aisk/ego/scanner"
+	"github.com/aisk/ego/token"
 )
 
 func ExampleScanner_Scan() {

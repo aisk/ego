@@ -5,7 +5,7 @@
 package parser
 
 import (
-	"go/token"
+	"github.com/aisk/ego/token"
 	"os"
 	"testing"
 )

@@ -9,10 +9,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
-	"internal/diff"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/parser"
+	"github.com/aisk/ego/token"
+	"github.com/aisk/ego/internal/diff"
 	"io"
 	"os"
 	"path/filepath"
@@ -366,7 +366,7 @@ func identCount(f *ast.File) int {
 func TestSourcePos(t *testing.T) {
 	const src = `
 package p
-import ( "go/printer"; "math" )
+import ( "github.com/aisk/ego/printer"; "math" )
 const pi = 3.14; var x = 0
 type t struct{ x, y, z int; u, v, w float32 }
 func (t *t) foo(a, b, c int) int {

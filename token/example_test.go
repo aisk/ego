@@ -6,9 +6,9 @@ package token_test
 
 import (
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/parser"
+	"github.com/aisk/ego/token"
 )
 
 func Example_retrievePositionInfo() {
@@ -18,7 +18,7 @@ func Example_retrievePositionInfo() {
 
 import "fmt"
 
-import "go/token"
+import "github.com/aisk/ego/token"
 
 //line :1:5
 type p = token.Pos

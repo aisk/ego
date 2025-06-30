@@ -7,10 +7,10 @@ package printer_test
 import (
 	"bytes"
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/printer"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/parser"
+	"github.com/aisk/ego/printer"
+	"github.com/aisk/ego/token"
 	"strings"
 )
 

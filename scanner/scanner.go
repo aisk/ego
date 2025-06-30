@@ -10,7 +10,7 @@ package scanner
 import (
 	"bytes"
 	"fmt"
-	"go/token"
+	"github.com/aisk/ego/token"
 	"path/filepath"
 	"strconv"
 	"unicode"

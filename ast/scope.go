@@ -8,7 +8,7 @@ package ast
 
 import (
 	"fmt"
-	"go/token"
+	"github.com/aisk/ego/token"
 	"strings"
 )
 

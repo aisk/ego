@@ -24,8 +24,8 @@ package parser
 
 import (
 	"flag"
-	"go/scanner"
-	"go/token"
+	"github.com/aisk/ego/scanner"
+	"github.com/aisk/ego/token"
 	"os"
 	"path/filepath"
 	"regexp"

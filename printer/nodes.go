@@ -9,8 +9,8 @@
 package printer
 
 import (
-	"go/ast"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/token"
 	"math"
 	"strconv"
 	"strings"

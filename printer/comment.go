@@ -5,7 +5,7 @@
 package printer
 
 import (
-	"go/ast"
+	"github.com/aisk/ego/ast"
 	"go/doc/comment"
 	"strings"
 )
