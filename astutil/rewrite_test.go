@@ -12,7 +12,7 @@ import (
 	"github.com/aisk/ego/token"
 	"testing"
 
-	"golang.org/x/tools/go/ast/astutil"
+	"github.com/aisk/ego/astutil"
 )
 
 type rewriteTest struct {
