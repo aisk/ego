@@ -6,7 +6,7 @@ package astutil
 
 import (
 	"fmt"
-	"go/ast"
+	"github.com/aisk/ego/ast"
 	"reflect"
 	"sort"
 )

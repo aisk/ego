@@ -6,10 +6,10 @@ package astutil
 
 import (
 	"bytes"
-	"go/ast"
-	"go/format"
-	"go/parser"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/format"
+	"github.com/aisk/ego/parser"
+	"github.com/aisk/ego/token"
 	"reflect"
 	"strconv"
 	"testing"
@@ -1048,7 +1048,7 @@ import (
 	"os"
 	"utf8"
 
-	"go/format"
+	"github.com/aisk/ego/format"
 )
 `,
 		out: `package main
@@ -1059,7 +1059,7 @@ import (
 	"os"
 	"utf8"
 
-	"go/format"
+	"github.com/aisk/ego/format"
 )
 `,
 	},
@@ -1075,7 +1075,7 @@ import (
 	"os"   // c
 	"utf8" // d
 
-	"go/format" // e
+	"github.com/aisk/ego/format" // e
 )
 `,
 		out: `package main
@@ -1087,7 +1087,7 @@ import (
 	"os"   // c
 	"utf8" // d
 
-	"go/format" // e
+	"github.com/aisk/ego/format" // e
 )
 `,
 	},

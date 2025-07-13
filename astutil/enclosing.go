@@ -8,8 +8,8 @@ package astutil
 
 import (
 	"fmt"
-	"go/ast"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/token"
 	"sort"
 )
 

@@ -7,8 +7,8 @@ package astutil // import "golang.org/x/tools/go/ast/astutil"
 
 import (
 	"fmt"
-	"go/ast"
-	"go/token"
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/token"
 	"slices"
 	"strconv"
 	"strings"
