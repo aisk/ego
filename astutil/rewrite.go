@@ -272,6 +272,9 @@ func (a *application) apply(parent ast.Node, name string, iter *iterator, n ast.
 		a.apply(n, "Fun", nil, n.Fun)
 		a.applyList(n, "Args")
 
+	case *ast.TryExpr:
+		a.apply(n, "X", nil, n.X)
+
 	case *ast.StarExpr:
 		a.apply(n, "X", nil, n.X)
 
