@@ -4,7 +4,7 @@
 
 `ego` means **E**rror can be handled implicitly in **GO**.
 
-It's an experimental *toy* Go transpiler that introduces the `?` operator for more concise error handling. It aims to reduce boilerplate code by replacing verbose error checks with a single character.
+It's an experimental *toy* Go preprocessor/transpiler that introduces the `?` operator for more concise error handling. It aims to reduce boilerplate code by replacing verbose error checks with a single character.
 
 For example, `ego` transforms this:
 

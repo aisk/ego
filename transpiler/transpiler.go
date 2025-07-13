@@ -1,0 +1,158 @@
+package transpiler
+
+import (
+	"io"
+	"os"
+
+	"github.com/aisk/ego/ast"
+	"github.com/aisk/ego/astutil"
+	"github.com/aisk/ego/containers"
+	"github.com/aisk/ego/format"
+	"github.com/aisk/ego/parser"
+	"github.com/aisk/ego/token"
+)
+
+var fstack containers.Stack[*ast.FuncType]
+
+func preVisit(c *astutil.Cursor) bool {
+	// Push FuncType to a stack for find the enclosing one.
+	n := c.Node()
+	switch x := n.(type) {
+	case *ast.FuncDecl:
+		fstack.Push(x.Type)
+	case *ast.FuncLit:
+		fstack.Push(x.Type)
+	}
+	return true
+}
+
+func getEnclosingFuncType() *ast.FuncType {
+	ftype, exist := fstack.Peek()
+	if !exist {
+		panic("no enclosing function")
+	}
+	return ftype
+}
+
+func genEmptyValueExpr(field *ast.Field) ast.Expr {
+	if ident, ok := field.Type.(*ast.Ident); ok {
+		switch field.Type.(*ast.Ident).Name {
+		case "error":
+			return &ast.Ident{Name: "err"}
+		case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "float32", "float64", "uintptr", "rune", "byte":
+			return &ast.BasicLit{Kind: token.INT, Value: "0"}
+		case "bool":
+			return &ast.Ident{Name: "false"}
+		case "string":
+			return &ast.BasicLit{Kind: token.STRING, Value: `""`}
+		default:
+			return &ast.StarExpr{
+				X: &ast.CallExpr{
+					Fun: &ast.Ident{Name: "new"},
+					Args: []ast.Expr{
+						&ast.Ident{Name: ident.Name},
+					},
+				},
+			}
+		}
+	} else if selector, ok := field.Type.(*ast.SelectorExpr); ok {
+		return &ast.StarExpr{
+			X: &ast.CallExpr{
+				Fun: &ast.Ident{Name: "new"},
+				Args: []ast.Expr{
+					&ast.SelectorExpr{
+						X:   &ast.Ident{Name: selector.X.(*ast.Ident).Name},
+						Sel: &ast.Ident{Name: selector.Sel.Name},
+					},
+				},
+			},
+		}
+	} else if _, ok := field.Type.(*ast.StarExpr); ok {
+		return &ast.Ident{Name: "nil"}
+	} else {
+		panic("unhandled result type")
+	}
+}
+
+func genResults(fields []*ast.Field) []ast.Expr {
+	var results []ast.Expr
+	for _, field := range fields {
+		results = append(results, genEmptyValueExpr(field))
+	}
+	return results
+}
+
+func Transpile(input io.Reader, output io.Writer) error {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "src.go", os.Stdin, 0)
+	if err != nil {
+		return err
+	}
+
+	// ast.Print(fset, file)
+
+	astutil.Apply(file, preVisit, func(c *astutil.Cursor) bool {
+		n := c.Node()
+		switch x := n.(type) {
+		case *ast.FuncDecl, *ast.FuncLit:
+			// Pop the FuncType stack.
+			fstack.Pop()
+		case *ast.AssignStmt:
+			// Handle err := f()?
+			rhs, ok := x.Rhs[0].(*ast.TryExpr)
+			if !ok {
+				break
+			}
+
+			x.Rhs[0] = rhs.X
+			x.Lhs = append(x.Lhs, &ast.Ident{Name: "err"})
+
+			c.InsertAfter(&ast.IfStmt{
+				Cond: &ast.BinaryExpr{
+					X:  &ast.Ident{Name: "err"},
+					Op: token.NEQ,
+					Y:  &ast.Ident{Name: "nil"},
+				},
+				Body: &ast.BlockStmt{
+					List: []ast.Stmt{
+						&ast.ReturnStmt{
+							Results: genResults(getEnclosingFuncType().Results.List),
+						},
+					},
+				}})
+		case *ast.ExprStmt:
+			// Handle f()?
+			tryX, ok := x.X.(*ast.TryExpr)
+			if !ok {
+				break
+			}
+			c.Replace(&ast.IfStmt{
+				Init: &ast.AssignStmt{
+					Lhs: []ast.Expr{
+						&ast.Ident{Name: "err"},
+					},
+					Tok: token.DEFINE,
+					Rhs: []ast.Expr{
+						tryX.X,
+					},
+				},
+				Cond: &ast.BinaryExpr{
+					X:  &ast.Ident{Name: "err"},
+					Op: token.NEQ,
+					Y:  &ast.Ident{Name: "nil"},
+				},
+				Body: &ast.BlockStmt{
+					List: []ast.Stmt{
+						&ast.ReturnStmt{
+							Results: genResults(getEnclosingFuncType().Results.List),
+						},
+					},
+				},
+			})
+		}
+
+		return true
+	})
+
+	return format.Node(os.Stdout, fset, file)
+}

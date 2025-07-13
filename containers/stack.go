@@ -1,4 +1,4 @@
-package main
+package containers
 
 type Stack[T any] struct {
 	elements []T
