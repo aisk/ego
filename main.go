@@ -45,6 +45,37 @@ func main() {
 						},
 					},
 				}})
+		case *ast.ExprStmt:
+			// Handle f()?
+			tryX, ok := x.X.(*ast.TryExpr)
+			if !ok {
+				break
+			}
+			c.Replace(&ast.IfStmt{
+				Init: &ast.AssignStmt{
+					Lhs: []ast.Expr{
+						&ast.Ident{Name: "err"},
+					},
+					Tok: token.DEFINE,
+					Rhs: []ast.Expr{
+						tryX.X,
+					},
+				},
+				Cond: &ast.BinaryExpr{
+					X:  &ast.Ident{Name: "err"},
+					Op: token.NEQ,
+					Y:  &ast.Ident{Name: "nil"},
+				},
+				Body: &ast.BlockStmt{
+					List: []ast.Stmt{
+						&ast.ReturnStmt{
+							Results: []ast.Expr{
+								&ast.Ident{Name: "err"},
+							},
+						},
+					},
+				},
+			})
 		}
 
 		return true
