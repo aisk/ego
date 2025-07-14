@@ -38,7 +38,7 @@ func genEmptyValueExpr(field *ast.Field) ast.Expr {
 	if ident, ok := field.Type.(*ast.Ident); ok {
 		switch field.Type.(*ast.Ident).Name {
 		case "error":
-			return &ast.Ident{Name: "err"}
+			return &ast.Ident{Name: "nil"}
 		case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "float32", "float64", "uintptr", "rune", "byte":
 			return &ast.BasicLit{Kind: token.INT, Value: "0"}
 		case "bool":
@@ -74,12 +74,33 @@ func genEmptyValueExpr(field *ast.Field) ast.Expr {
 	}
 }
 
-func genResults(fields []*ast.Field) []ast.Expr {
-	var results []ast.Expr
-	for _, field := range fields {
-		results = append(results, genEmptyValueExpr(field))
+func genResults(results *ast.FieldList) []ast.Expr {
+	if results == nil {
+		panic("try expression used in function that does not return an error")
 	}
-	return results
+	fields := results.List
+	var resultsExpr []ast.Expr
+	hasError := false
+	for _, field := range fields {
+		if ident, ok := field.Type.(*ast.Ident); ok && ident.Name == "error" {
+			hasError = true
+		}
+		resultsExpr = append(resultsExpr, genEmptyValueExpr(field))
+	}
+
+	if !hasError {
+		panic("try expression used in function that does not return an error")
+	}
+
+	for i := len(fields) - 1; i >= 0; i-- {
+		field := fields[i]
+		if ident, ok := field.Type.(*ast.Ident); ok && ident.Name == "error" {
+			resultsExpr[i] = &ast.Ident{Name: "err"}
+			break
+		}
+	}
+
+	return resultsExpr
 }
 
 func Transpile(input io.Reader, output io.Writer) error {
@@ -116,7 +137,7 @@ func Transpile(input io.Reader, output io.Writer) error {
 				Body: &ast.BlockStmt{
 					List: []ast.Stmt{
 						&ast.ReturnStmt{
-							Results: genResults(getEnclosingFuncType().Results.List),
+							Results: genResults(getEnclosingFuncType().Results),
 						},
 					},
 				}})
@@ -144,7 +165,7 @@ func Transpile(input io.Reader, output io.Writer) error {
 				Body: &ast.BlockStmt{
 					List: []ast.Stmt{
 						&ast.ReturnStmt{
-							Results: genResults(getEnclosingFuncType().Results.List),
+							Results: genResults(getEnclosingFuncType().Results),
 						},
 					},
 				},
