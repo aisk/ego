@@ -103,9 +103,17 @@ func genResults(results *ast.FieldList) []ast.Expr {
 	return resultsExpr
 }
 
+func getReaderFileName(reader io.Reader) string {
+	filename := "*unknown*"
+	if f, ok := reader.(interface{ Name() string }); ok {
+		filename = f.Name()
+	}
+	return filename
+}
+
 func Transpile(input io.Reader, output io.Writer) error {
 	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, "src.go", os.Stdin, 0)
+	file, err := parser.ParseFile(fset, getReaderFileName(input), input, 0)
 	if err != nil {
 		return err
 	}
