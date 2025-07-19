@@ -1,6 +1,8 @@
 package transpiler
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"os"
 
@@ -26,25 +28,25 @@ func preVisit(c *astutil.Cursor) bool {
 	return true
 }
 
-func getEnclosingFuncType() *ast.FuncType {
+func getEnclosingFuncType() (*ast.FuncType, error) {
 	ftype, exist := fstack.Peek()
 	if !exist {
-		panic("no enclosing function")
+		return nil, errors.New("no enclosing function")
 	}
-	return ftype
+	return ftype, nil
 }
 
-func genEmptyValueExpr(field *ast.Field) ast.Expr {
+func genEmptyValueExpr(field *ast.Field) (ast.Expr, error) {
 	if ident, ok := field.Type.(*ast.Ident); ok {
 		switch field.Type.(*ast.Ident).Name {
 		case "error":
-			return &ast.Ident{Name: "nil"}
+			return &ast.Ident{Name: "nil"}, nil
 		case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "float32", "float64", "uintptr", "rune", "byte":
-			return &ast.BasicLit{Kind: token.INT, Value: "0"}
+			return &ast.BasicLit{Kind: token.INT, Value: "0"}, nil
 		case "bool":
-			return &ast.Ident{Name: "false"}
+			return &ast.Ident{Name: "false"}, nil
 		case "string":
-			return &ast.BasicLit{Kind: token.STRING, Value: `""`}
+			return &ast.BasicLit{Kind: token.STRING, Value: `""`}, nil
 		default:
 			return &ast.StarExpr{
 				X: &ast.CallExpr{
@@ -53,7 +55,7 @@ func genEmptyValueExpr(field *ast.Field) ast.Expr {
 						&ast.Ident{Name: ident.Name},
 					},
 				},
-			}
+			}, nil
 		}
 	} else if selector, ok := field.Type.(*ast.SelectorExpr); ok {
 		return &ast.StarExpr{
@@ -66,17 +68,17 @@ func genEmptyValueExpr(field *ast.Field) ast.Expr {
 					},
 				},
 			},
-		}
+		}, nil
 	} else if _, ok := field.Type.(*ast.StarExpr); ok {
-		return &ast.Ident{Name: "nil"}
+		return &ast.Ident{Name: "nil"}, nil
 	} else {
-		panic("unhandled result type")
+		return nil, fmt.Errorf("unhandled result type: %T", field.Type)
 	}
 }
 
-func genResults(results *ast.FieldList) []ast.Expr {
+func genResults(results *ast.FieldList) ([]ast.Expr, error) {
 	if results == nil {
-		panic("try expression used in function that does not return an error")
+		return nil, fmt.Errorf("try expression used in function that does not return an error")
 	}
 	fields := results.List
 	var resultsExpr []ast.Expr
@@ -85,11 +87,15 @@ func genResults(results *ast.FieldList) []ast.Expr {
 		if ident, ok := field.Type.(*ast.Ident); ok && ident.Name == "error" {
 			hasError = true
 		}
-		resultsExpr = append(resultsExpr, genEmptyValueExpr(field))
+		expr, err := genEmptyValueExpr(field)
+		if err != nil {
+			return nil, err
+		}
+		resultsExpr = append(resultsExpr, expr)
 	}
 
 	if !hasError {
-		panic("try expression used in function that does not return an error")
+		return nil, fmt.Errorf("try expression used in function that does not return an error")
 	}
 
 	for i := len(fields) - 1; i >= 0; i-- {
@@ -100,7 +106,7 @@ func genResults(results *ast.FieldList) []ast.Expr {
 		}
 	}
 
-	return resultsExpr
+	return resultsExpr, nil
 }
 
 func getReaderFileName(reader io.Reader) string {
@@ -120,6 +126,8 @@ func Transpile(input io.Reader, output io.Writer) error {
 
 	// ast.Print(fset, file)
 
+	var transpileError error
+
 	astutil.Apply(file, preVisit, func(c *astutil.Cursor) bool {
 		n := c.Node()
 		switch x := n.(type) {
@@ -131,6 +139,17 @@ func Transpile(input io.Reader, output io.Writer) error {
 			rhs, ok := x.Rhs[0].(*ast.TryExpr)
 			if !ok {
 				break
+			}
+			enclosingFunc, err := getEnclosingFuncType()
+			if err != nil {
+				transpileError = fmt.Errorf("%s: %v", fset.Position(x.Pos()), err)
+				return false
+			}
+
+			results, err := genResults(enclosingFunc.Results)
+			if err != nil {
+				transpileError = fmt.Errorf("%s: %v", fset.Position(x.Pos()), err)
+				return false
 			}
 
 			x.Rhs[0] = rhs.X
@@ -145,7 +164,7 @@ func Transpile(input io.Reader, output io.Writer) error {
 				Body: &ast.BlockStmt{
 					List: []ast.Stmt{
 						&ast.ReturnStmt{
-							Results: genResults(getEnclosingFuncType().Results),
+							Results: results,
 						},
 					},
 				}})
@@ -155,6 +174,19 @@ func Transpile(input io.Reader, output io.Writer) error {
 			if !ok {
 				break
 			}
+
+			enclosingFunc, err := getEnclosingFuncType()
+			if err != nil {
+				transpileError = fmt.Errorf("%s: %v", fset.Position(x.Pos()), err)
+				return false
+			}
+
+			results, err := genResults(enclosingFunc.Results)
+			if err != nil {
+				transpileError = fmt.Errorf("%s: %v", fset.Position(x.Pos()), err)
+				return false
+			}
+
 			c.Replace(&ast.IfStmt{
 				Init: &ast.AssignStmt{
 					Lhs: []ast.Expr{
@@ -173,7 +205,7 @@ func Transpile(input io.Reader, output io.Writer) error {
 				Body: &ast.BlockStmt{
 					List: []ast.Stmt{
 						&ast.ReturnStmt{
-							Results: genResults(getEnclosingFuncType().Results),
+							Results: results,
 						},
 					},
 				},
@@ -182,6 +214,10 @@ func Transpile(input io.Reader, output io.Writer) error {
 
 		return true
 	})
+
+	if transpileError != nil {
+		return transpileError
+	}
 
 	return format.Node(os.Stdout, fset, file)
 }
