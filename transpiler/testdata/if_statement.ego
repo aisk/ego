@@ -1,0 +1,19 @@
+package main
+
+func someFunc() (int, error) {
+	return 1, nil
+}
+
+func callSomeFunc() (bool, error) {
+	if someFunc()? > 0 {
+		return true, nil
+	} else if someFunc() ? {
+        return true, nil
+    }
+
+    if someFunc()? {
+        return true, nil
+    }
+
+	return false, nil
+}
