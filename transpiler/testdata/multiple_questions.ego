@@ -1,0 +1,18 @@
+package main
+
+import "fmt"
+
+func process() error {
+	first := getFirst()?
+	second := getSecond()?
+	fmt.Println(first, second)
+	return nil
+}
+
+func getFirst() (string, error) {
+	return "first", nil
+}
+
+func getSecond() (string, error) {
+	return "second", nil
+}

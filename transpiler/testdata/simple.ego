@@ -1,0 +1,13 @@
+package main
+
+import "fmt"
+
+func process() error {
+	result := someFunc()?
+	fmt.Println(result)
+	return nil
+}
+
+func someFunc() (string, error) {
+	return "hello", nil
+}

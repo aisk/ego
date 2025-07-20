@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/aisk/ego/ast"
 	"github.com/aisk/ego/astutil"
@@ -219,5 +218,5 @@ func Transpile(input io.Reader, output io.Writer) error {
 		return transpileError
 	}
 
-	return format.Node(os.Stdout, fset, file)
+	return format.Node(output, fset, file)
 }
