@@ -87,3 +87,26 @@ func main() {
 }
 
 ```
+
+## Design Principles
+
+The goal of this project is to design a Go language extension with more syntactic sugar, implemented as a preprocessor. The precompiled result is **completely standard Go code**, indistinguishable from hand-written Go code.
+
+**Core Design Philosophy: Zero Lock-in**
+
+- If you decide this project isn't suitable, you can simply delete all `.ego` files and continue development with the original Go code
+- If your team doesn't want to introduce ego, you can edit `.ego` files locally and commit the generated standard Go code to your version control server
+- The precompiled Go code has no runtime dependencies or special libraries
+
+**Design Constraints**
+
+To achieve zero lock-in, there are some intentional limitations:
+
+1. **The ? operator does not support method chaining** - For example, `a()?.b()?` is not supported because it would require introducing intermediate variables, and it's difficult to provide reasonable names for these variables
+2. **Currently does not support the ? operator in for loop initialization statements** - For example, `for item := range getItems()?` is not yet supported. This limitation may be removed in the future
+
+These constraints ensure the generated Go code remains clean, readable, and identical to hand-written code.
+
+## TODO
+
+- [ ] Implement a Go-compatible command-line tool that supports all Go flags and commands, with the only difference being that it preprocesses all `.ego` files to `.go` files before running compile or test operations
