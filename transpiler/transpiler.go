@@ -76,16 +76,21 @@ func genEmptyValueExpr(field *ast.Field) (ast.Expr, error) {
 }
 
 func genResults(results *ast.FieldList) ([]ast.Expr, error) {
-	if results == nil {
+	if results == nil || len(results.List) == 0 {
 		return nil, fmt.Errorf("try expression used in function that does not return an error")
 	}
+
 	fields := results.List
 	var resultsExpr []ast.Expr
-	hasError := false
+
+	// Check if the last parameter is an error type
+	lastField := fields[len(fields)-1]
+	if ident, ok := lastField.Type.(*ast.Ident); !ok || ident.Name != "error" {
+		return nil, fmt.Errorf("try expression used in function that does not return an error")
+	}
+
+	// Generate empty values for all parameters
 	for _, field := range fields {
-		if ident, ok := field.Type.(*ast.Ident); ok && ident.Name == "error" {
-			hasError = true
-		}
 		expr, err := genEmptyValueExpr(field)
 		if err != nil {
 			return nil, err
@@ -93,17 +98,8 @@ func genResults(results *ast.FieldList) ([]ast.Expr, error) {
 		resultsExpr = append(resultsExpr, expr)
 	}
 
-	if !hasError {
-		return nil, fmt.Errorf("try expression used in function that does not return an error")
-	}
-
-	for i := len(fields) - 1; i >= 0; i-- {
-		field := fields[i]
-		if ident, ok := field.Type.(*ast.Ident); ok && ident.Name == "error" {
-			resultsExpr[i] = &ast.Ident{Name: "err"}
-			break
-		}
-	}
+	// Replace the last parameter (which is error) with "err"
+	resultsExpr[len(resultsExpr)-1] = &ast.Ident{Name: "err"}
 
 	return resultsExpr, nil
 }
