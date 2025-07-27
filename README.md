@@ -104,6 +104,7 @@ To achieve zero lock-in, there are some intentional limitations:
 
 1. **The ? operator does not support method chaining** - For example, `a()?.b()?` is not supported because it would require introducing intermediate variables, and it's difficult to provide reasonable names for these variables
 2. **Currently does not support the ? operator in for loop initialization statements** - For example, `for item := range getItems()?` is not yet supported. This limitation may be removed in the future
+3. **When discarding return values, functions must have only an error return** - When you don't accept any return values from a function (i.e., when using `f()?`), the function must have exactly one return value of type `error`. If a function returns multiple values (e.g., `func f() (int, error)`), you need to use `_` to discard the non-error return values: `_ = f()?`
 
 These constraints ensure the generated Go code remains clean, readable, and identical to hand-written code.
 
