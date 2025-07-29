@@ -11,19 +11,24 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 || os.Args[1] != "transpile" {
-		// Proxy all commands and args to go binary
-		cmd := exec.Command("go", os.Args[1:]...)
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			if exitErr, ok := err.(*exec.ExitError); ok {
-				os.Exit(exitErr.ExitCode())
-			}
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	if len(os.Args) < 2 {
+		proxyToGo(os.Args[1:])
+		return
+	}
+
+	subcommand := os.Args[1]
+	if subcommand == "build" || subcommand == "run" || subcommand == "test" {
+		// Transpile .ego files before proxying to go
+		if err := transpileDirectory("."); err != nil {
+			fmt.Fprintf(os.Stderr, "Error transpiling .ego files: %v\n", err)
 			os.Exit(1)
 		}
+		proxyToGo(os.Args[1:])
+		return
+	}
+
+	if subcommand != "transpile" {
+		proxyToGo(os.Args[1:])
 		return
 	}
 
@@ -47,6 +52,20 @@ func main() {
 				os.Exit(1)
 			}
 		}
+	}
+}
+
+func proxyToGo(args []string) {
+	cmd := exec.Command("go", args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			os.Exit(exitErr.ExitCode())
+		}
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 }
 
