@@ -52,10 +52,23 @@ func main() {
 }
 ```
 
-Run the `ego` transpiler and save the output to a `.go` file:
+`ego` supports multiple ways to specify transpile targets:
 
 ```sh
+# Transpile from stdin
 $ cat hello.ego | ego > hello.go
+
+# Transpile specific files
+$ ego hello.ego
+
+# Transpile all .ego files in a directory (non-recursive)
+$ ego .
+
+# Transpile all .ego files recursively
+$ ego ./...
+
+# Transpile all .ego files in current directory recursively
+$ ego ...
 ```
 
 The transpiled `hello.go` will contain:
